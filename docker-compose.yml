@@ -1,0 +1,19 @@
+version: "3"
+
+services:
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    hostname: "rabbit"
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      NAME: "rabbitmq"
+    # Keep it running.
+    tty: true
+  celery:
+    build: .
+    labels:
+      NAME: "celery"
+    depends_on:
+      - "rabbitmq"

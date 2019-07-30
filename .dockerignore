@@ -1,0 +1,11 @@
+.dockerignore
+.git
+.gitignore
+Dockerfile
+docker-compose.yml
+_site
+Gemfile.lock
+bin
+lib
+include
+README.md
