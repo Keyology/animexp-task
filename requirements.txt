@@ -3,11 +3,13 @@ billiard==3.6.0.0
 celery==4.3.0
 certifi==2019.6.16
 chardet==3.0.4
+configparser==3.7.4
 idna==2.8
 kombu==4.6.3
 PyJWT==1.7.1
 pymongo==3.8.0
 PySocks==1.7.0
+python-dotenv==0.10.3
 pytz==2019.1
 requests==2.22.0
 six==1.12.0
