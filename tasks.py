@@ -1,5 +1,5 @@
 import requests
-import pprint as ppfrom
+import pprint as pp
 import userInfo
 from celery import Celery
 from datetime import date
@@ -32,12 +32,18 @@ def send_sms_recommendations():
         users_info = userInfo.get_users_account()
         today = date.today()
         for key, value in users_info.items():
-            params = {"userID": value[0],"name":f"sms recommendations {today}","description":f"{today} sms recommendations", "list":value[2]}
-            create_new_list = requests.post("http://localhost:8002/user/new/list", params=params)
+            print("****LIST***", [value[2]])
+            data = {"userID": value[0],"name":f"sms recommendations {today}","description":f"{today} sms recommendations", "list":[value[2]]}
+            create_new_list = requests.post("http://localhost:8002/user/new/list", data=data )
             if(create_new_list.status_code != 200):
                 print('STATUS CODE FOR CREATE NEW LIST',create_new_list.status_code)
                 continue
             response = create_new_list.json()
+            user_anime_recommendations = response['animeRecommendations'][0:4]
+            pp.pprint(user_anime_recommendations)
+        # for i in range(user_anime_recommendations):
+        #     url = f"https://animexp-backend.herokuapp.com/search/anime/:{user_anime_recommendations[i]}"
+
         
     except Exception as error:
         print("Error sending sms recomendations", error)
