@@ -11,13 +11,16 @@ def parse_dotenv():
     file_content = None
     with open(".env", 'rt') as f:
         file_content = f.read()
-        file_content = file_content[10:-2]
+        file_content = file_content
+    print(file_content)
     return file_content
     
 
 
 
 db_url = parse_dotenv()
+print(db_url)
+
 
 client = MongoClient(db_url)
 print("***CLIENT****", client)
@@ -40,16 +43,14 @@ def get_users_account():
                 # print("****USER_ID***", userID)
                 # url = f"https://animexp-backend.herokuapp.com/user/{userID}/lists"
                 url =f'http://localhost:8002/user/{userID}/lists'
-                # print("***URL***", url)
                 r = requests.get(url)
                 if(r.status_code != 200):
                     print("***STATUS***", r.status_code)
                     continue
                 response = r.json()
-                #print("****RESPONSE****", response)
-
-            if('firstName' not in response):
-                continue
+                
+                if('firstName' not in response or 'phoneNumber' not in response):
+                    continue
             if(response['firstName'] == None):
                 continue
             else:
@@ -57,17 +58,22 @@ def get_users_account():
                 # pp.pprint(response['firstName'])
                 # pp.pprint(response['phoneNumber'])
                 #pp.pprint(response['userAnimeList'])
-                random_anime = response['userAnimeList'][0]['animeList']
-                # print("***RANDOM ANIME***", random_anime)
+                index = 0
+                random_anime = response['userAnimeList'][index]['animeList']
+                if(len(random_anime) == 0 and index <= len(response['userAnimeList'])):
+                    index += 1
+                    random_anime = response['userAnimeList'][index]['animeList']
+                    pp.pprint(random_anime)
+                else: 
+                    continue
+
+
                 random_index = random.choice(range(len(random_anime)))
-                # print("***RANDOM_INDEX***", random_anime)
-                random_anime_2 = response['userAnimeList'][0]['animeList'][random_index][0]
-                # print('**ANIME**',random_anime_2)
+                random_anime_2 = response['userAnimeList'][index]['animeList'][random_index][0]
                 user_name = response['firstName']
                 userID = response['userId']
-                # print("***USER NAME****", user_name)
                 user_account_info[user_name] = [userID, response['phoneNumber'],random_anime_2]
-                # print("***DICT ****", user_account_info)
+                index = 0
         return user_account_info
 
     except Exception as error:
