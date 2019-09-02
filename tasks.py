@@ -31,6 +31,7 @@ def send_sms_recommendations():
     try:
         users_info = userInfo.get_users_account()
         today = date.today()
+        anime_titles = []
         for _, value in users_info.items():
             user_new_list= {"userID": value[0],"name":f"sms recommendations {today}","description":f"{today} sms recommendations", "list":[value[2]]}
             create_new_list = requests.post("http://localhost:8002/user/new/list", data=user_new_list)
@@ -39,12 +40,13 @@ def send_sms_recommendations():
                 continue
             response = create_new_list.json()
             user_anime_recommendations = response['animeRecommendations'][0:4]
-            pp.pprint(user_anime_recommendations)
         for i in range(len(user_anime_recommendations)):
-            url = f"https://animexp-backend.herokuapp.com/search/anime/:{user_anime_recommendations[i]}"
+            url = f"https://animexp-backend.herokuapp.com/search/anime/{user_anime_recommendations[i][0]}"
+            print("url", url)
             request = requests.get(url)
             resp = request.json()
-            pp.pprint(resp)
+            anime_titles.append(resp[0]["animeTitles"][0])
+        wake_up_server = request.get("https://sms-server-1.herokuapp.com/")
 
 
         
