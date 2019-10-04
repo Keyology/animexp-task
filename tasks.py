@@ -1,40 +1,18 @@
 import requests
 import pprint as pp
 import userInfo
-from celery import Celery
 from datetime import date
 
-
-app = Celery('tasks', backend='rpc://', broker='pyamqp://')
-
-# @app.task
-# def send_sms_recommendations():
-#     """
-#     import twillio api to send sms messages
-#     call this endpoint to get recommendations for user localhost:8802/user/new/list save recs
-#     send first 5 recommendations to user include title and poster image and link to view the rest
-
-#     """
-    
-#     try:
-#         users_info = userInfo.get_users_account()
-#         for key, value in users_info.items():
-#             print("KEY", key)
-#             print("VAlue", value)
-#         # url = "https://animexp-backend.herokuapp.com/user/new/list"
-#         # r = requests.post(url)
-#     except Exception as error:
-#         print("ERROR RUNNING TASK:", error)
-
-@app.task
 def send_sms_recommendations():
     try:
         users_info = userInfo.get_users_account()
+        pp.pprint(users_info)
         today = date.today()
         anime_titles = []
-        for _, value in users_info.items():
-            user_new_list= {"userID": value[0],"name":f"sms recommendations {today}","description":f"{today} sms recommendations", "list":[value[2]]}
-            create_new_list = requests.post("http://localhost:8002/user/new/list", data=user_new_list)
+        for key, value in users_info.items():
+            user_new_list= {"userID": value[0],"name":f"sms recommendations {today}","description":f"{today} sms recommendations", "list": [value[3]]}
+            create_new_list = requests.post("https://animexp-backend.herokuapp.com/user/new/list", data=user_new_list)
+            
             if(create_new_list.status_code != 200):
                 print('STATUS CODE FOR CREATE NEW LIST',create_new_list.status_code)
                 continue
@@ -43,10 +21,20 @@ def send_sms_recommendations():
         for i in range(len(user_anime_recommendations)):
             url = f"https://animexp-backend.herokuapp.com/search/anime/{user_anime_recommendations[i][0]}"
             print("url", url)
-            request = requests.get(url)
-            resp = request.json()
+            get_title = requests.get(url)
+            resp = get_title.json()
             anime_titles.append(resp[0]["animeTitles"][0])
-        wake_up_server = request.get("https://sms-server-1.herokuapp.com/")
+        wake_up_server = requests.get("https://flask-sms-server.herokuapp.com/")
+        if(wake_up_server.status_code == 200):
+            sms_data = {'username':key, 'phonenumber': value[1],
+            'carrier': value[2], 'anime_recs_titiles':anime_titles}
+            send_sms = requests.post('https://flask-sms-server.herokuapp.com/api/v1/send/sms', data=sms_data)
+        else:
+            print("ERROR SENDING REQUEST TO SMS")
+    task_completed = 'DONE'
+    return task_completed
+        
+        
 
 
         
@@ -56,7 +44,8 @@ def send_sms_recommendations():
 
 
 if __name__ == "__main__":
-    result = send_sms_recommendations()
+    task = send_sms_recommendations()
+    print(task)
 
 
 
